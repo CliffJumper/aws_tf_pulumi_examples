@@ -2,6 +2,8 @@
 const aws = require("@pulumi/aws");
 const pulumi = require("@pulumi/pulumi");
 
+let vpcStack = new pulumi.StackReference("vpc-demo");
+
 // Default module values
 let modConfig = {
   "amiId"        : "",
@@ -14,8 +16,7 @@ let modConfig = {
   echo "Hello, World! FINALLY GOT THIS WORKING!" > index.html
   nohup python -m SimpleHTTPServer 80 &`
 };
-let rsrcPulumiNetwork = {};
-var eventEmitter = new events.EventEmitter();
+var rsrcPulumiInstance = {};
 
 // ****************************************************************************
 // Configure module
@@ -62,7 +63,7 @@ function getAMIs() {
 // Create resources
 // ****************************************************************************
 function rsrcPulumiCreate() {
-  let sgParam = {vpcId:awsNetwork.pulumiResources.vpc.id, ingress:[], egress:[]};
+  let sgParam = {vpcId:vpcStack.getOutputSync("vpcId"), ingress:[], egress:[]};
 
   for (let i=0; i<modConfig.ports.length; i++) {
     sgParam.ingress.push({
@@ -79,37 +80,23 @@ function rsrcPulumiCreate() {
     cidrBlocks: ["0.0.0.0/0"]
   });
 
-  rsrcPulumiNetwork.group = new aws.ec2.SecurityGroup(modConfig.prefix+"SecurityGroup", sgParam);
+  rsrcPulumiInstance.group = new aws.ec2.SecurityGroup(modConfig.prefix+"SecurityGroup", sgParam);
 
-  rsrcPulumiNetwork.keypair = new aws.ec2.KeyPair(modConfig.prefix+"KeyPair", {
+  rsrcPulumiInstance.keypair = new aws.ec2.KeyPair(modConfig.prefix+"KeyPair", {
     keyName  : "generic-keypair.pem",
     publicKey: modConfig.keyMaterial
   });
-
-  rsrcPulumiNetwork.server = new aws.ec2.Instance(modConfig.prefix+"Instance", {
+  
+  rsrcPulumiInstance.server = new aws.ec2.Instance(modConfig.prefix+"Instance", {
     tags: { "Name": modConfig.prefix+"Instance" },
-    subnetId: awsNetwork.pulumiResources.subnet0.id,
+    subnetId: vpcStack.getOutputSync("subnet0Id"),
     associatePublicIpAddress: true,
     instanceType: modConfig.size,
-    securityGroups: [ rsrcPulumiNetwork.group.id ],
+    securityGroups: [ rsrcPulumiInstance.group.id ],
     ami: modConfig.amiId,
-    keyName: rsrcPulumiNetwork.keypair.keyName,
+    keyName: rsrcPulumiInstance.keypair.keyName,
     userData: modConfig.userData
-  });
-}
-
-// ****************************************************************************
-// Custom output
-// ****************************************************************************
-function postDeploy() {
-  pulumi.all([
-    rsrcPulumiNetwork.server.id,
-    rsrcPulumiNetwork.server.publicIp,
-    rsrcPulumiNetwork.keypair.keyName
-  ]).apply(([x,y,z]) => {
-    console.log("Instance Info", x,y,z);
-    console.log("ssh -i",z,"ec2-user@"+y)
-  });
+  });  
 }
 
 // ****************************************************************************
@@ -123,8 +110,7 @@ function ddStart(params) {
     getAMIs();
   }
   rsrcPulumiCreate();
-  postDeploy();
 }
 
 module.exports.ddStart = ddStart;
-module.exports.pulumiResources = rsrcPulumiNetwork;
+module.exports.pulumiResources = rsrcPulumiInstance;
