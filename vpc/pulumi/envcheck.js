@@ -1,13 +1,12 @@
 const AWS = require('aws-sdk');
+
 const unittest = false;
 
-if (unittest) {
-  process.env['AWS_SDK_LOAD_CONFIG'] = "true"
-  process.env['AWS_PROFILE'] = "assume-role-profile"
-  var credentials = new AWS.SharedIniFileCredentials({ profile: "admin" });
-  AWS.config.credentials = credentials;
-  AWS.config.region = "us-east-2";
-}
+process.env['AWS_SDK_LOAD_CONFIG'] = "true"
+process.env['AWS_PROFILE'] = "assume-role-profile"
+var credentials = new AWS.SharedIniFileCredentials({ profile: "admin" });
+AWS.config.credentials = credentials;
+AWS.config.region = "us-east-2";
 
 const ec2 = new AWS.EC2();
 
@@ -19,11 +18,9 @@ async function cidrUsed(cidrstr) {
       if (!checkDone) {
         if (vpc.CidrBlock == cidrstr) {
           checkDone = true;
-          console.log("found", checkDone, vpc.CidrBlock);
         }
       }
     });
-    console.log("done looping");
   } catch (err) {
     console.error("Ugh - getting vpc info didn't work", err);
   }

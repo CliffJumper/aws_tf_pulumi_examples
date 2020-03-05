@@ -74,19 +74,6 @@ function rsrcPulumiCreate() {
 }
 
 // ****************************************************************************
-// Custom output
-// ****************************************************************************
-function postDeploy() {
-  pulumi.all([
-    rsrcPulumiNetwork.vpc.urn,
-    rsrcPulumiNetwork.vpc.id,
-    rsrcPulumiNetwork.subnet0.id
-  ]).apply(([x,y,z]) => {
-    console.log("VPC info", x,y,z);
-  });
-}
-
-// ****************************************************************************
 // API into this module
 // ****************************************************************************
 function ddStart(params) {
@@ -98,11 +85,10 @@ function ddStart(params) {
   //   } else {
   //     console.log("cidr already in use");
   //   }
-  // })
+  // });
   rsrcPulumiCreate();
-  postDeploy();
 }
 
 module.exports.ddStart = ddStart;
 module.exports.pulumiResources = rsrcPulumiNetwork;
-
+module.exports.allRsrcs = pulumi.all;

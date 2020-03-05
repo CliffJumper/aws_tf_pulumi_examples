@@ -6,5 +6,8 @@ var netParams = {
   "subnets": 4,
   "prefix": "qews"
 };
+
 awsNetwork.ddStart(netParams);
+module.exports.vpcId = awsNetwork.pulumiResources.vpc.id
+module.exports.subnet0Id = awsNetwork.pulumiResources.subnet0.id
 
