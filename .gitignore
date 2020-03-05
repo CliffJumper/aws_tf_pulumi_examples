@@ -5,6 +5,14 @@
 *.tfstate
 *.tfstate.*
 
+# node files
+node_modules
+package-lock.json
+
+# pulumi project files
+Pulumi.yaml
+Pulumi.*.yaml
+
 # Crash log files
 crash.log
 
