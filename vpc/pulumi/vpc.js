@@ -78,15 +78,14 @@ function rsrcPulumiCreate() {
 // ****************************************************************************
 function ddStart(params) {
   setModuleConfig(params);
-  // envCheck.cidrUsed(params.cidr).then((used) => {
-  //   if (!used) {
-  //     rsrcPulumiCreate();
-  //     postDeploy();
-  //   } else {
-  //     console.log("cidr already in use");
-  //   }
-  // });
-  rsrcPulumiCreate();
+  envCheck.cidrUsed(params.cidr).then((used) => {
+    if (!used) {
+      rsrcPulumiCreate();
+    } else {
+      console.log("cidr already in use");
+    }
+  });
+  // rsrcPulumiCreate();
 }
 
 module.exports.ddStart = ddStart;
