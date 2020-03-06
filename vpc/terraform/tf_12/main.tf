@@ -13,7 +13,7 @@ module "vpc" {
 
   subnets = {
     us-east-2a = cidrsubnet(local.cidr, 8, 1)
-    us-east-2b = cidrsubnet(local.cidr, 8, 1)
-    us-east-2c = cidrsubnet(local.cidr, 8, 1)
+    us-east-2b = cidrsubnet(local.cidr, 8, 2)
+    us-east-2c = cidrsubnet(local.cidr, 8, 3)
   }
 }
