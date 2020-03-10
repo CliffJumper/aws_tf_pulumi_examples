@@ -2,7 +2,6 @@
 const aws = require("@pulumi/aws");
 const pulumi = require("@pulumi/pulumi");
 const cidrMath = require("./utilCidr");
-const envCheck = require("./envcheck.js");
 
 // Default module values
 let modConfig = {
@@ -78,14 +77,7 @@ function rsrcPulumiCreate() {
 // ****************************************************************************
 function ddStart(params) {
   setModuleConfig(params);
-  envCheck.cidrUsed(params.cidr).then((used) => {
-    if (!used) {
-      rsrcPulumiCreate();
-    } else {
-      console.log("cidr already in use");
-    }
-  });
-  // rsrcPulumiCreate();
+  rsrcPulumiCreate();
 }
 
 module.exports.ddStart = ddStart;

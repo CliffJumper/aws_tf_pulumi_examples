@@ -63,24 +63,27 @@ function getAMIs() {
 // Create resources
 // ****************************************************************************
 function rsrcPulumiCreate() {
-  let sgParam = {vpcId:vpcStack.getOutputSync("vpcId"), ingress:[], egress:[]};
-
-  for (let i=0; i<modConfig.ports.length; i++) {
-    sgParam.ingress.push({
+  rsrcPulumiInstance.group = new aws.ec2.SecurityGroup(modConfig.prefix+"SecurityGroup", {vpcId:vpcStack.getOutputSync("vpcId")});
+  rsrcPulumiInstance.grouprules = [];
+  // add all the rules for this security group
+  for (let i = 0; i < modConfig.ports.length; i++) {
+    rsrcPulumiInstance.grouprules.push(new aws.ec2.SecurityGroupRule("rule_"+i, {
+      type: "ingress",
       protocol: "tcp",
       fromPort: modConfig.ports[i],
       toPort: modConfig.ports[i],
-      cidrBlocks: ["0.0.0.0/0"]
-    });
+      cidrBlocks: ["0.0.0.0/0"],
+      securityGroupId: rsrcPulumiInstance.group.id
+    }));
   }
-  sgParam.egress.push({
+  rsrcPulumiInstance.grouprules.push(new aws.ec2.SecurityGroupRule("rule_egress", {
+    type: "egress",
     protocol: "-1",
     fromPort: 0,
     toPort: 0,
-    cidrBlocks: ["0.0.0.0/0"]
-  });
-
-  rsrcPulumiInstance.group = new aws.ec2.SecurityGroup(modConfig.prefix+"SecurityGroup", sgParam);
+    cidrBlocks: ["0.0.0.0/0"],
+    securityGroupId: rsrcPulumiInstance.group.id
+  }));
 
   rsrcPulumiInstance.keypair = new aws.ec2.KeyPair(modConfig.prefix+"KeyPair", {
     keyName  : "generic-keypair.pem",
